@@ -10,7 +10,7 @@ app.use(express.json());
 
 // vraća mi prihode sa backenda u jsonu
 app.get("/", async (req, res) => {
-  let db = await connect(); // promise
+  let db = await connect(); 
   let cursor = await db.collection("stanjeRacuna").find();
   let data = await cursor.toArray();
   res.json(data);
