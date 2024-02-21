@@ -10,7 +10,7 @@ app.use(express.json());
 
 // vraća mi prihode sa backenda u jsonu
 app.get("/", async (req, res) => {
-  let db = await connect(); 
+  let db = await connect();
   let cursor = await db.collection("stanjeRacuna").find();
   let data = await cursor.toArray();
   res.json(data);
@@ -19,6 +19,13 @@ app.get("/", async (req, res) => {
 app.get("/pregledPrihoda", async (req, res) => {
   let db = await connect();
   let cursor = await db.collection("prihodi").find();
+  let data = await cursor.toArray();
+  res.json(data);
+});
+
+app.get("/pregledRashoda", async (req, res) => {
+  let db = await connect();
+  let cursor = await db.collection("rashodi").find();
   let data = await cursor.toArray();
   res.json(data);
 });
@@ -38,7 +45,6 @@ app.post("/noviPrihod", async (req, res) => {
   let db = await connect();
   let rezultat = await db.collection("prihodi").insertOne(data);
 
-  
   if (rezultat && rezultat.acknowledged === true) {
     res.json(data);
     console.log(data);
@@ -48,5 +54,36 @@ app.post("/noviPrihod", async (req, res) => {
     });
   }
 });
+
+app.post("/noviRashod", async (req, res) => {
+  let data = req.body;
+
+  if (!data.iznos || !data.kategorija || !data.datum) {
+    res.json({
+      status: "fail",
+      reason: "rashod nije kompletan",
+    });
+
+    return;
+  }
+
+  let db = await connect();
+  let rezultat = await db.collection("rashodi").insertOne(data);
+
+  if (rezultat && rezultat.acknowledged === true) {
+    res.json(data);
+    console.log(data);
+  } else {
+    res.json({
+      status: "fail",
+    });
+  }
+});
+
+app.delete("/pregledPrihoda/:id", async (req, res) => {
+  let db = await connect();
+  let rezultat = await db.collection("prihodi").deleteOne()
+});
+
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
