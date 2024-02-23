@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connect from "./db.js";
+import { BSON } from "mongodb";
 
 const app = express();
 const port = 3000;
@@ -80,10 +81,44 @@ app.post("/noviRashod", async (req, res) => {
   }
 });
 
-app.delete("/pregledPrihoda/:id", async (req, res) => {
-  let db = await connect();
-  let rezultat = await db.collection("prihodi").deleteOne()
+app.get("/detaljiPrihoda/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    let db = await connect();
+
+    let prihod = await db
+      .collection("prihodi")
+      .findOne({ _id: new BSON.ObjectId(id) });
+    if (!prihod) {
+      return res.status(404).json({ message: "Prihod nije pronađen." });
+    }
+    res.json(prihod);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja detalja prihoda:", error);
+    res
+      .status(500)
+      .json({ message: "Greška prilikom dohvaćanja detalja prihoda." });
+  }
 });
 
+app.delete("/detaljiPrihoda/:id", async (req, res) => {
+  try {
+    let id = req.params.id; // Dohvaćanje ID-a prihoda iz URL parametara
+    console.log(id);
+    let db = await connect();
+
+    let rezultat = await db
+      .collection("prihodi")
+      .deleteOne({ _id: new BSON.ObjectId(id) }); // Brisanje prihoda iz baze podataka
+    if (rezultat.deletedCount === 1) {
+      res.json({ success: true, message: "Prihod uspješno obrisan" });
+    } else {
+      res.json({ message: "Prihod nije pronađen." });
+    }
+  } catch (err) {
+    console.error("Greška prilikom brisanja prihoda:", err);
+    res.json({ success: false, message: "Greška prilikom brisanja prihoda" });
+  }
+});
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
