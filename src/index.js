@@ -101,6 +101,26 @@ app.get("/detaljiPrihoda/:id", async (req, res) => {
   }
 });
 
+app.get("/detaljiRashoda/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    let db = await connect();
+
+    let rashod = await db
+      .collection("rashodi")
+      .findOne({ _id: new BSON.ObjectId(id) });
+    if (!rashod) {
+      return res.status(404).json({ message: "Rashod nije pronađen." });
+    }
+    res.json(rashod);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja detalja rashoda:", error);
+    res
+      .status(500)
+      .json({ message: "Greška prilikom dohvaćanja detalja rashoda." });
+  }
+});
+
 app.delete("/detaljiPrihoda/:id", async (req, res) => {
   try {
     let id = req.params.id; // Dohvaćanje ID-a prihoda iz URL parametara
@@ -121,4 +141,23 @@ app.delete("/detaljiPrihoda/:id", async (req, res) => {
   }
 });
 
+app.delete("/detaljiRashoda/:id", async (req, res) => {
+  try {
+    let id = req.params.id; // Dohvaćanje ID-a prihoda iz URL parametara
+    console.log(id);
+    let db = await connect();
+
+    let rezultat = await db
+      .collection("rashodi")
+      .deleteOne({ _id: new BSON.ObjectId(id) }); // Brisanje prihoda iz baze podataka
+    if (rezultat.deletedCount === 1) {
+      res.json({ success: true, message: "Rashod uspješno obrisan" });
+    } else {
+      res.json({ message: "Rashod nije pronađen." });
+    }
+  } catch (err) {
+    console.error("Greška prilikom brisanja rashoda:", err);
+    res.json({ success: false, message: "Greška prilikom brisanja rashoda" });
+  }
+});
 app.listen(port, () => console.log(`Listening on port ${port}`));
