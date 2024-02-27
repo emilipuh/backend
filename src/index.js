@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connect from "./db.js";
-import { BSON } from "mongodb";
+import { BSON, ObjectId } from "mongodb";
 
 const app = express();
 const port = 3000;
@@ -27,6 +27,13 @@ app.get("/pregledPrihoda", async (req, res) => {
 app.get("/pregledRashoda", async (req, res) => {
   let db = await connect();
   let cursor = await db.collection("rashodi").find();
+  let data = await cursor.toArray();
+  res.json(data);
+});
+
+app.get("/pregledStednji", async (req, res) => {
+  let db = await connect();
+  let cursor = await db.collection("stednja").find();
   let data = await cursor.toArray();
   res.json(data);
 });
@@ -81,6 +88,31 @@ app.post("/noviRashod", async (req, res) => {
   }
 });
 
+app.post("/novaStednja", async (req, res) => {
+  let data = req.body;
+
+  if (!data.iznos || !data.datum) {
+    res.json({
+      status: "fail",
+      reason: "stednja nije kompletna",
+    });
+
+    return;
+  }
+
+  let db = await connect();
+  let rezultat = await db.collection("stednja").insertOne(data);
+
+  if (rezultat && rezultat.acknowledged === true) {
+    res.json(data);
+    console.log(data);
+  } else {
+    res.json({
+      status: "fail",
+    });
+  }
+});
+
 app.get("/detaljiPrihoda/:id", async (req, res) => {
   try {
     let id = req.params.id;
@@ -118,6 +150,27 @@ app.get("/detaljiRashoda/:id", async (req, res) => {
     res
       .status(500)
       .json({ message: "Greška prilikom dohvaćanja detalja rashoda." });
+  }
+});
+
+app.get("/detaljiStednje/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    let db = await connect();
+
+    let stednja = await db
+      .collection("stednja")
+      .findOne({ _id: new BSON.ObjectId(id) });
+
+    if (!stednja) {
+      return res.status(404).json({ message: "Štednja nije pronađena." });
+    }
+    res.json(stednja);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja detalja štednje:", error);
+    res
+      .status(500)
+      .json({ message: "Greška prilikom dohvaćanja detalja štednje." });
   }
 });
 
@@ -160,4 +213,5 @@ app.delete("/detaljiRashoda/:id", async (req, res) => {
     res.json({ success: false, message: "Greška prilikom brisanja rashoda" });
   }
 });
+
 app.listen(port, () => console.log(`Listening on port ${port}`));
