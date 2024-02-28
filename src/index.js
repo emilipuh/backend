@@ -214,4 +214,23 @@ app.delete("/detaljiRashoda/:id", async (req, res) => {
   }
 });
 
+app.delete("/detaljiStednje/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    console.log(id);
+
+    let db = await connect();
+    let rezultat = db
+      .collection("stednja")
+      .deleteOne({ _id: new BSON.ObjectId(id) });
+    if (rezultat.deletedCount === 1) {
+      res.json({ success: true, message: "Štednja uspješno obrisana" });
+    } else {
+      res.json({ success: false, message: "Greška prilikom brisanja štednje" });
+    }
+  } catch (err) {
+    res.json({ success: false, message: "Greška prilikom brisanja štednje" });
+  }
+});
+
 app.listen(port, () => console.log(`Listening on port ${port}`));
