@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import connect from "./db.js";
+import connect from "./db";
+import auth from "./auth";
 import { BSON, ObjectId } from "mongodb";
 
 const app = express();
@@ -8,6 +9,16 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+app.post("/korisnici", async (req, res) => {
+  let korisnik = req.body;
+  try {
+    let id = await auth.registracija(korisnik);
+    res.json({ id: id });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // vraća mi prihode sa backenda u jsonu
 app.get("/", async (req, res) => {
