@@ -10,15 +10,35 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+// registracija
 app.post("/korisnici", async (req, res) => {
   let korisnik = req.body;
   try {
-    let id = await auth.registracija(korisnik);
+    let id = await auth.registerUser(korisnik);
     res.json({ id: id });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
+// autentifikacija
+app.post("/auth", async (req, res) => {
+  let korisnik = req.body;
+  try {
+    let result = await auth.authenticateUser(
+      korisnik.username,
+      korisnik.password
+    );
+    res.json(result);
+  } catch (e) {
+    res.status(401).json({ error: e.message });
+  }
+});
+
+// provjera da li je potpis valjan
+app.get("/tajna", [auth.verify], async (req, res) => {
+  res.json({ message: "Ovo je tajna " + req.jwt.username })  
+})
 
 // vraća mi prihode sa backenda u jsonu
 app.get("/", async (req, res) => {
