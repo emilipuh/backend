@@ -14,8 +14,18 @@ app.use(express.json());
 app.post("/korisnici", async (req, res) => {
   let korisnik = req.body;
   try {
-    let id = await auth.registerUser(korisnik);
-    res.json({ id: id });
+    let user = await auth.registerUser(korisnik);
+    // dodjeljivanje korisnickog id prilikom registracije i postavljanje pocetnog stanja
+    let pocetnoStanje = {
+      userId: user._id,
+      stanje: 0,
+      prihodi: 0,
+      rashodi: 0,
+      stednja: 0,
+    };
+    let db = await connect();
+    await db.collection("stanjeRacuna").insertOne(pocetnoStanje);
+    res.json({ user: user });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -37,36 +47,67 @@ app.post("/auth", async (req, res) => {
 
 // provjera da li je potpis valjan
 app.get("/tajna", [auth.verify], async (req, res) => {
-  res.json({ message: "Ovo je tajna " + req.jwt.username })  
-})
+  res.json({ message: "Ovo je tajna " + req.jwt.username });
+});
 
 // vraća mi prihode sa backenda u jsonu
-app.get("/", async (req, res) => {
-  let db = await connect();
-  let cursor = await db.collection("stanjeRacuna").find();
-  let data = await cursor.toArray();
-  res.json(data);
+app.get("/:id", [auth.verify], async (req, res) => {
+  let id = req.params.id;
+  try {
+    let db = await connect();
+    let data = await db
+      .collection("stanjeRacuna")
+      .findOne({ userId: new BSON.ObjectId(id) });
+    res.json(data);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja stanja: ", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.get("/pregledPrihoda", async (req, res) => {
-  let db = await connect();
-  let cursor = await db.collection("prihodi").find();
-  let data = await cursor.toArray();
-  res.json(data);
+app.get("/pregledPrihoda/:id", async (req, res) => {
+  let userId = req.params.id;
+  try {
+    let db = await connect();
+    let cursor = await db
+      .collection("prihodi")
+      .find({ userId: userId });
+    let data = await cursor.toArray();
+    res.json(data);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja prihoda: ", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.get("/pregledRashoda", async (req, res) => {
-  let db = await connect();
-  let cursor = await db.collection("rashodi").find();
-  let data = await cursor.toArray();
-  res.json(data);
+app.get("/pregledRashoda/:id", async (req, res) => {
+  let userId = req.params.id;
+  try {
+    let db = await connect();
+    let cursor = await db
+      .collection("rashodi")
+      .find({ userId: userId });
+    let data = await cursor.toArray();
+    res.json(data);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja prihoda: ", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.get("/pregledStednji", async (req, res) => {
-  let db = await connect();
-  let cursor = await db.collection("stednja").find();
-  let data = await cursor.toArray();
-  res.json(data);
+app.get("/pregledStednji/:id", async (req, res) => {
+  let userId = req.params.id;
+  try {
+    let db = await connect();
+    let cursor = await db
+      .collection("stednja")
+      .find({ userId: userId });
+    let data = await cursor.toArray();
+    res.json(data);
+  } catch (error) {
+    console.error("Greška prilikom dohvaćanja štednji: ", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post("/noviPrihod", async (req, res) => {
