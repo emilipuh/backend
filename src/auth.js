@@ -22,7 +22,6 @@ import mongo from "mongodb";
 export default {
   async registerUser(user_data) {
     let db = await connect();
-
     let user = {
       email: user_data.email,
       username: user_data.username,
@@ -31,8 +30,9 @@ export default {
     // ovo omotamo u try catch da ne dobivamo greške u konzoli
     try {
       let rezultat = await db.collection("korisnici").insertOne(user);
+      console.log(rezultat)
       if (rezultat && rezultat.insertedId) {
-        return rezultat.insertedId;
+        return user;
       }
     } catch (err) {
       if (err.code == 11000) {
@@ -59,6 +59,8 @@ export default {
       return {
         token,
         username: user.username,
+        email: user.email,
+        id: user._id
       };
     } else {
       throw new Error("Cannot authenticate");
