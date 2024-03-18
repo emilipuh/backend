@@ -30,7 +30,6 @@ export default {
     // ovo omotamo u try catch da ne dobivamo greške u konzoli
     try {
       let rezultat = await db.collection("korisnici").insertOne(user);
-      console.log(rezultat)
       if (rezultat && rezultat.insertedId) {
         return user;
       }
