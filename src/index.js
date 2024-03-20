@@ -127,7 +127,6 @@ app.post("/noviPrihod", async (req, res) => {
 
   if (rezultat && rezultat.acknowledged === true) {
     res.json(data);
-    console.log(data);
   } else {
     res.json({
       status: "fail",
@@ -152,7 +151,6 @@ app.post("/noviRashod", async (req, res) => {
 
   if (rezultat && rezultat.acknowledged === true) {
     res.json(data);
-    console.log(data);
   } else {
     res.json({
       status: "fail",
@@ -177,7 +175,6 @@ app.post("/novaStednja", async (req, res) => {
 
   if (rezultat && rezultat.acknowledged === true) {
     res.json(data);
-    console.log(data);
   } else {
     res.json({
       status: "fail",
