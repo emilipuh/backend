@@ -4,7 +4,8 @@ dotenv.config(); // za iščitavanje JWT_SECRET iz .env, ide u gitignore
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import connect from "./db";
-import mongo from "mongodb";
+import mongo, { ObjectId, BSON } from "mongodb";
+import { response } from "express";
 
 // moramo provjeriti ako korisnik već postoji, ali nećemo
 // to provjeravati u export defaultu da se to ne bi
@@ -59,7 +60,7 @@ export default {
         token,
         username: user.username,
         email: user.email,
-        id: user._id
+        id: user._id,
       };
     } else {
       throw new Error("Cannot authenticate");
@@ -79,6 +80,55 @@ export default {
       }
     } catch (e) {
       return res.status(401).send();
+    }
+  },
+  async promijeniPodatke(podaci) {
+    try {
+      let novi_username = podaci.username;
+      let novi_email = podaci.email;
+      let stara_lozinka = podaci.stara_lozinka;
+      let nova_lozinka = podaci.nova_lozinka;
+
+      let db = await connect();
+      let user = await db
+        .collection("korisnici")
+        .findOne({ _id: new BSON.ObjectId(podaci.userId) });
+
+      if (!user) {
+        throw new Error("Korisnik nije pronađen");
+      }
+
+      if (stara_lozinka && nova_lozinka) {
+        if (!(await bcrypt.compare(stara_lozinka, user.password))) {
+          throw new Error("Stara lozinka nije točna");
+        }
+
+        let nova_lozinka_hashed = await bcrypt.hash(nova_lozinka, 8);
+
+        await db
+          .collection("korisnici")
+          .updateOne(
+            { _id: user._id },
+            { $set: { password: nova_lozinka_hashed } }
+          );
+      }
+
+      if (novi_username && novi_username !== user.username) {
+        await db
+          .collection("korisnici")
+          .updateOne({ _id: user._id }, { $set: { username: novi_username } });
+      }
+
+      if (novi_email && novi_email !== user.email) {
+        await db
+          .collection("korisnici")
+          .updateOne({ _id: user._id }, { $set: { email: novi_email } });
+      }
+
+      return "Podaci uspješno ažurirani";
+    } catch (error) {
+      console.error("Greška prilikom ažuriranja podataka:", error);
+      throw new Error(error);
     }
   },
 };
