@@ -45,6 +45,17 @@ app.post("/auth", async (req, res) => {
   }
 });
 
+app.patch("/urediKorisnika", [auth.verify], async (req, res) => {
+  let changes = req.body;
+
+  try {
+    await auth.promijeniPodatke(changes);
+    res.status(200).json({ message: "Podaci uspješno ažurirani" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // provjera da li je potpis valjan
 app.get("/tajna", [auth.verify], async (req, res) => {
   res.json({ message: "Ovo je tajna " + req.jwt.username });
@@ -69,9 +80,7 @@ app.get("/pregledPrihoda/:id", async (req, res) => {
   let userId = req.params.id;
   try {
     let db = await connect();
-    let cursor = await db
-      .collection("prihodi")
-      .find({ userId: userId });
+    let cursor = await db.collection("prihodi").find({ userId: userId });
     let data = await cursor.toArray();
     res.json(data);
   } catch (error) {
@@ -84,9 +93,7 @@ app.get("/pregledRashoda/:id", async (req, res) => {
   let userId = req.params.id;
   try {
     let db = await connect();
-    let cursor = await db
-      .collection("rashodi")
-      .find({ userId: userId });
+    let cursor = await db.collection("rashodi").find({ userId: userId });
     let data = await cursor.toArray();
     res.json(data);
   } catch (error) {
@@ -99,9 +106,7 @@ app.get("/pregledStednji/:id", async (req, res) => {
   let userId = req.params.id;
   try {
     let db = await connect();
-    let cursor = await db
-      .collection("stednja")
-      .find({ userId: userId });
+    let cursor = await db.collection("stednja").find({ userId: userId });
     let data = await cursor.toArray();
     res.json(data);
   } catch (error) {
