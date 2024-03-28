@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config(); // za iščitavanje MONGO_URI iz .env, ide u gitignore
+
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const uri =
-  "mongodb+srv://epuh:epuh@cluster0.laryrkw.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.MONGO_URI;
 
 const client = new MongoClient(uri, {
   serverApi: {

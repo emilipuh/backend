@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import connect from "./db";
 import auth from "./auth";
-import { BSON, ObjectId } from "mongodb";
+import { BSON } from "mongodb";
 
 const app = express();
 const port = 3000;
@@ -10,6 +10,9 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+app.get("/test", (req, res) => {
+  res.send("Baza je okej");
+});
 // registracija
 app.post("/korisnici", async (req, res) => {
   let korisnik = req.body;
